@@ -7,6 +7,7 @@ import pdb
 import numpy as np
 
 from cs224r.infrastructure import pytorch_util as ptu
+from toolbox.printing import debug
 
 class IQLCritic(BaseCritic):
 
@@ -46,7 +47,8 @@ class IQLCritic(BaseCritic):
         # HINT: see Q_net definition above and optimizer below
         # HINT: Define using same hparams as Q_net, but adjust output dimensions
         ### YOUR CODE HERE ###
-        self.v_net = None
+        self.v_net = network_initializer(self.ob_dim, 1)
+        self.v_net.to(ptu.device)
         ### YOUR CODE HERE ###
 
         self.v_optimizer = self.optimizer_spec.constructor(
@@ -67,7 +69,9 @@ class IQLCritic(BaseCritic):
         # HINT: You can return a tensor with same dimensionality as diff and 
         # aggregate it later
         ### YOUR CODE HERE ###
-        pass
+        tau = self.iql_expectile
+        loss = torch.where(diff < 0, (tau - 1) * diff**2, tau * diff**2).mean()
+        return loss
         ### YOUR CODE HERE ###
 
 
@@ -83,7 +87,20 @@ class IQLCritic(BaseCritic):
         # HINT: Use self.expectile_loss as defined above, 
         # passing in the difference between the computed targets and predictions
         ### YOUR CODE HERE ###
-        value_loss = None
+        # debug(ob_no)
+        # debug(ac_na)
+        # debug(self.q_net_target)
+        # debug(self.v_net)
+        # debug(self.q_net_target(ob_no))
+        # debug(self.v_net(ob_no))
+        # self.q_net_target(ob_no) has a shape of (batch_size, ac_dim)
+        # ac_na has a shape of (batch_size)
+        # For each element in batch get q_net_target(ob_no)[i, ac_na[i]]
+        # Then subtract v_net(ob_no)[i] do this without gather
+        diff = self.q_net_target(ob_no).gather(1, ac_na.unsqueeze(1)) - self.v_net(ob_no)
+        # debug(diff)
+        value_loss = self.expectile_loss(diff)
+        # debug(value_loss)
         ### YOUR CODE HERE ###
         
 
@@ -113,7 +130,28 @@ class IQLCritic(BaseCritic):
         # HINT: Note that if the next state is terminal, 
         # its target reward value needs to be adjusted.
         ### YOUR CODE HERE ###
-        loss = None
+        
+        # Step 1: Compute the target values
+        target_values = self.v_net(next_ob_no)
+        target_values = target_values.reshape(-1)
+        # debug(target_values)
+
+        # Step 2: Compute the target q values
+        # debug(reward_n)
+        # debug(terminal_n)
+        target_q_values = reward_n + self.gamma * target_values * (1 - terminal_n)
+        target_q_values = target_q_values.reshape(-1, 1)
+        # debug(target_q_values)
+
+        # Step 3: Compute the q values
+        q_values = self.q_net(ob_no).gather(1, ac_na.unsqueeze(1))
+        # debug(q_values)
+
+        # Step 4: Compute the loss
+        loss = self.mse_loss(q_values, target_q_values)
+        # debug(loss)
+        # print("")
+
         ### YOUR CODE HERE ###
         self.optimizer.zero_grad()
         loss.backward()

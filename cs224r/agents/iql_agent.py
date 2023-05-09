@@ -13,6 +13,7 @@ from .dqn_agent import DQNAgent
 from cs224r.policies.MLP_policy import MLPPolicyAWAC
 import numpy as np
 import torch
+from toolbox.printing import debug
 
 
 class IQLAgent(DQNAgent):
@@ -71,7 +72,10 @@ class IQLAgent(DQNAgent):
         # HINT: Access critic using self.exploitation_critic 
         # (critic trained in the offline setting)
         ### YOUR CODE HERE ###
-        pass
+        q_values = self.get_qvals(self.exploitation_critic, ob_no, ac_na)
+        v_values = self.get_qvals(self.exploitation_critic, ob_no, use_v=True)
+        advantage = q_values - v_values
+        return advantage
         ### YOUR CODE HERE ###
         
     def train(self, ob_no, ac_na, re_n, next_ob_no, terminal_n):
@@ -114,8 +118,17 @@ class IQLAgent(DQNAgent):
             # TODO 2): Calculate the awac actor loss
             
             ### YOUR CODE HERE ###
-            advantage = None
-            actor_loss = None
+            
+            # Step 1: Estimate the advantage
+            adv_n = self.estimate_advantage(ob_no, ac_na, re_n, next_ob_no, terminal_n)
+            # debug(adv_n)
+            # debug(ob_no)
+            # debug(ac_na)
+
+            # Step 2: Calculate the awac actor loss
+            actor_loss = self.awac_actor.update(ob_no, ac_na, adv_n)
+            # debug(actor_loss)
+
             ### YOUR CODE HERE ###
             
             
