@@ -92,12 +92,12 @@ class CQLCritic(BaseCritic):
         # q_t_values is of shape [batch_size] duplicate so that it is of shape [batch_size, action_dim]
         q_t_values = q_t_values.unsqueeze(1).repeat(1, self.ac_dim)
         # debug(q_t_values)
-        q_t_logsumexp = torch.logsumexp(qa_t_values - q_t_values, dim=1) / qa_t_values.shape[1]
+        q_t_logsumexp = torch.logsumexp(qa_t_values - q_t_values, dim=1)
         # debug(q_t_logsumexp)
-        cql_loss = self.cql_alpha * q_t_logsumexp
+        cql_loss = self.cql_alpha * q_t_logsumexp.mean()
         # debug(cql_loss)
         # print("")
-        loss += cql_loss.mean()
+        loss += cql_loss
         
         ### YOUR CODE HERE ###
         self.optimizer.zero_grad()
