@@ -84,7 +84,10 @@ class CQLCritic(BaseCritic):
         # Hint: After calculating cql_loss, augment the loss appropriately
         
         ### YOUR CODE HERE ###
-        loss = None
+        loss, qa_t_values, q_t_values = self.dqn_loss(ob_no, ac_na, next_ob_no, reward_n, terminal_n)
+        qa_t_logsumexp = torch.logsumexp(qa_t_values / self.cql_alpha, dim=1)
+        cql_loss = (self.cql_alpha * qa_t_logsumexp - q_t_values).mean()
+        loss += cql_loss
         
         ### YOUR CODE HERE ###
         self.optimizer.zero_grad()
