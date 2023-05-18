@@ -7,7 +7,6 @@ import pdb
 import numpy as np
 
 from cs224r.infrastructure import pytorch_util as ptu
-from toolbox.printing import debug
 
 class IQLCritic(BaseCritic):
 
