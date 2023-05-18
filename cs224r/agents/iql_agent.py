@@ -13,7 +13,6 @@ from .dqn_agent import DQNAgent
 from cs224r.policies.MLP_policy import MLPPolicyAWAC
 import numpy as np
 import torch
-from toolbox.printing import debug
 
 
 class IQLAgent(DQNAgent):
@@ -121,13 +120,9 @@ class IQLAgent(DQNAgent):
             
             # Step 1: Estimate the advantage
             adv_n = self.estimate_advantage(ob_no, ac_na, re_n, next_ob_no, terminal_n)
-            # debug(adv_n)
-            # debug(ob_no)
-            # debug(ac_na)
 
             # Step 2: Calculate the awac actor loss
             actor_loss = self.awac_actor.update(ob_no, ac_na, adv_n)
-            # debug(actor_loss)
 
             ### YOUR CODE HERE ###
             

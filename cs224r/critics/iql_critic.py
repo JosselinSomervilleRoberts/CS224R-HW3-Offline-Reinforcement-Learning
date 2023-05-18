@@ -87,20 +87,11 @@ class IQLCritic(BaseCritic):
         # HINT: Use self.expectile_loss as defined above, 
         # passing in the difference between the computed targets and predictions
         ### YOUR CODE HERE ###
-        # debug(ob_no)
-        # debug(ac_na)
-        # debug(self.q_net_target)
-        # debug(self.v_net)
-        # debug(self.q_net_target(ob_no))
-        # debug(self.v_net(ob_no))
-        # self.q_net_target(ob_no) has a shape of (batch_size, ac_dim)
         # ac_na has a shape of (batch_size)
         # For each element in batch get q_net_target(ob_no)[i, ac_na[i]]
         # Then subtract v_net(ob_no)[i] do this without gather
         diff = self.q_net_target(ob_no).gather(1, ac_na.unsqueeze(1)) - self.v_net(ob_no)
-        # debug(diff)
         value_loss = self.expectile_loss(diff)
-        # debug(value_loss)
         ### YOUR CODE HERE ###
         
 
